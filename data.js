@@ -105,6 +105,42 @@ const SECTIONS = [
         facts: ["48 bits", "6 hex pairs", "First 3 = OUI (maker)", "Layer 2 only", "ARP = IP→MAC", "Can be spoofed"]
       },
 
+      {
+        id: "http-https",
+        title: "HTTP & HTTPS",
+        tags: ["both"],
+        chain: ["Browser requests a page", "HTTP = plain text request", "HTTPS = encrypted request", "TLS handshake secures it", "Page delivered safely"],
+        blurb: "HTTP is how browsers and servers talk. HTTPS is the same thing but with a TLS lock on it so nobody can read the conversation.",
+        detail: `HTTP = HyperText Transfer Protocol. It's request/response: browser asks, server answers.\n\n<strong>HTTP methods you must know:</strong>\n• GET: fetch a resource (loading a page)\n• POST: send data to the server (submitting a form)\n• PUT: replace a resource entirely\n• PATCH: update part of a resource\n• DELETE: remove a resource\n• HEAD: like GET but only returns headers, not body\n\n<strong>HTTP status codes:</strong>\n• 200 = OK — it worked\n• 301/302 = Redirect\n• 400 = Bad Request (you sent something wrong)\n• 401 = Unauthorized (not logged in)\n• 403 = Forbidden (logged in but not allowed)\n• 404 = Not Found\n• 500 = Server Error (server broke)\n\n<strong>HTTPS:</strong>\nHTTP + TLS. The TLS handshake happens before any HTTP data is sent:\n1. Browser says hello + supported cipher suites\n2. Server sends its certificate\n3. Browser verifies the cert against trusted CAs\n4. Session key exchanged (asymmetric crypto)\n5. All further traffic encrypted with that session key (symmetric)\n\nHTTP = port 80. HTTPS = port 443.`,
+        memory: `HTTP = shouting your order across a restaurant (everyone can hear). HTTPS = ordering through a private tube (only you and the kitchen know).\n\n401 = "Who are you?" (no login). 403 = "I know who you are, you're just not allowed." 404 = "I can't find it."`,
+        examTip: `401 vs 403 is a classic exam trick. HTTPS uses TLS (not SSL — SSL is deprecated). Port 80 = HTTP, port 443 = HTTPS. HTTP is stateless — each request is independent unless cookies/sessions are used.`,
+        facts: ["HTTP=port 80", "HTTPS=port 443", "401=unauth", "403=forbidden", "404=not found", "TLS secures HTTPS", "Stateless protocol"]
+      },
+
+      {
+        id: "tcp-udp-ports-detail",
+        title: "TCP vs UDP — When Each Is Used",
+        tags: ["net"],
+        chain: ["Application picks a transport", "TCP = accuracy needed", "UDP = speed needed", "Port number added", "Data sent"],
+        blurb: "TCP checks every delivery. UDP fires and forgets. The choice depends on whether losing a packet matters more than the delay of re-checking.",
+        detail: `<strong>TCP (Transmission Control Protocol):</strong>\nConnection-oriented. Before data flows, a 3-way handshake establishes the connection:\n→ SYN (client: "want to talk?")\n→ SYN-ACK (server: "sure, ready")\n→ ACK (client: "great, starting now")\n\nAfter transfer, a 4-way teardown closes it (FIN, FIN-ACK, ACK).\n\nFeatures: guaranteed delivery, ordering, error correction, flow control, congestion control. Slower because of all this overhead.\n\nUse TCP for: web (HTTP/HTTPS), email (SMTP/IMAP), file transfer (FTP), SSH.\n\n<strong>UDP (User Datagram Protocol):</strong>\nConnectionless. No handshake. Just send. No confirmation.\n\nFeatures: fast, lightweight, no overhead. If a packet drops, it's gone.\n\nUse UDP for: DNS (quick lookup), video streaming, VoIP (voice calls), gaming, NTP (time sync), TFTP, SNMP.\n\n<strong>Both TCP and UDP:</strong>\n• DNS: usually UDP (fast lookups), but TCP when response is too large\n• LDAP: both (389 TCP, but also UDP)\n• SIP (VoIP signaling): both`,
+        memory: `TCP = registered mail with signature confirmation. Slower, guaranteed.\nUDP = dropping a flyer in someone's mailbox. Fast, no confirmation, some may not arrive.\n\nVoice calls (VoIP) = UDP. A missing millisecond of audio is fine. A missing byte of your SSH session is catastrophic.`,
+        examTip: `SYN flood attack = attacker sends thousands of SYNs, never completes handshake, exhausts server's connection table (DoS). DNS uses UDP 53 normally, TCP 53 for zone transfers or large responses. TFTP = UDP 69.`,
+        facts: ["TCP=reliable", "UDP=fast", "SYN/SYN-ACK/ACK", "FTP=TCP", "DNS=UDP 53", "VoIP=UDP", "SYN flood=DoS"]
+      },
+
+      {
+        id: "network-address-types",
+        title: "Unicast, Broadcast, Multicast, Anycast",
+        tags: ["net"],
+        chain: ["Data needs to reach", "One device (unicast)", "All devices (broadcast)", "A group (multicast)", "Nearest of a group (anycast)"],
+        blurb: "Four ways to address network traffic — who gets the message. Most of your traffic is unicast (one to one).",
+        detail: `<strong>Unicast:</strong>\nOne sender → one specific receiver. The most common type. Your computer loading a webpage = unicast.\n\n<strong>Broadcast:</strong>\nOne sender → every device on the subnet. Used by: ARP ("who has this IP?"), DHCP discovery. Broadcast address = last IP in subnet (e.g., 192.168.1.255 for /24). Broadcasts don't cross routers — they stay in their subnet.\n\n<strong>Multicast:</strong>\nOne sender → a group of interested receivers. Like a cable TV channel — only devices that "subscribe" receive it. Used by: video streaming (IPTV), routing protocols (OSPF uses 224.0.0.5), some VoIP.\nMulticast IP range: 224.0.0.0 – 239.255.255.255\n\n<strong>Anycast:</strong>\nOne sender → nearest receiver in a group. The same IP is announced from multiple locations; routing sends you to the closest one. Used by: CDNs, DNS root servers, Cloudflare's 1.1.1.1.\n\n<strong>Summary:</strong>\nUnicast = 1→1. Broadcast = 1→all. Multicast = 1→many (opt-in). Anycast = 1→nearest.`,
+        memory: `Unicast = calling one person. Broadcast = yelling in a room. Multicast = a group text (only members of the group get it). Anycast = calling customer support and getting routed to the nearest agent.`,
+        examTip: `Broadcast stays within a subnet (routers block it). Multicast range = 224-239.x.x.x. Anycast is how modern DNS services (1.1.1.1, 8.8.8.8) route you to the nearest server. IPv6 replaced broadcast with multicast entirely.`,
+        facts: ["Unicast=1→1", "Broadcast=1→all", "Multicast=1→group", "Anycast=1→nearest", "Broadcast stays in subnet", "Multicast=224-239.x.x.x"]
+      },
+
     ]
   },
 
@@ -176,6 +212,30 @@ const SECTIONS = [
       },
 
       {
+        id: "spanning-tree",
+        title: "Spanning Tree Protocol (STP)",
+        tags: ["net"],
+        chain: ["Redundant switch links added", "Loops would destroy network", "STP detects loops", "Blocks redundant ports", "Loop-free path maintained"],
+        blurb: "Switches with redundant links would create infinite loops and melt your network. STP prevents that by automatically blocking the extra paths.",
+        detail: `Without STP: if you connect two switches with two cables for redundancy, broadcast frames loop forever between them, consuming all bandwidth in seconds. This is a broadcast storm.\n\nSTP solves this by electing a Root Bridge and blocking ports that would create loops, keeping only one active path between any two switches.\n\n<strong>STP process:</strong>\n1. Elect a Root Bridge (switch with lowest Bridge ID = priority + MAC address)\n2. Every other switch finds its best path to the Root Bridge (Root Port)\n3. On each network segment, the switch with the best path becomes Designated Port\n4. All other ports = Blocked (no data, just listens)\n\n<strong>STP port states:</strong>\nBlocking → Listening → Learning → Forwarding\n(Takes 30-50 seconds to converge — very slow)\n\n<strong>Modern versions:</strong>\n• RSTP (Rapid STP / 802.1w): converges in seconds instead of 30-50s\n• MSTP (Multiple STP / 802.1s): separate spanning tree per VLAN group\n• PVST+ (Cisco's Per-VLAN STP): one spanning tree per VLAN`,
+        memory: `STP = the network's traffic cop who closes off extra roads to prevent traffic circles. One main road to the Root Bridge, all other paths closed unless needed.\n\nRoot Bridge = the boss switch. Lowest priority number wins (counter-intuitive — lower is "better").`,
+        examTip: `Bridge ID = priority (default 32768) + MAC address. Lowest Bridge ID = Root Bridge. RSTP = 802.1w (rapid). Classic STP = 802.1d. PortFast = skip the slow STP states for end devices (never on switch-to-switch links). BPDU Guard = shut port if STP BPDUs received on PortFast port.`,
+        facts: ["802.1d=classic STP", "802.1w=RSTP(fast)", "Root Bridge=lowest ID", "Blocks redundant ports", "PortFast=end devices", "BPDU Guard=protects"]
+      },
+
+      {
+        id: "dns-deep",
+        title: "DNS — How Resolution Actually Works",
+        tags: ["net"],
+        chain: ["You type google.com", "Check local cache", "Ask recursive resolver", "Resolver asks root → TLD → authoritative", "IP returned and cached"],
+        blurb: "DNS resolution is a chain of questions between servers. Understanding the full path matters for both the exam and real troubleshooting.",
+        detail: `<strong>Full DNS resolution path:</strong>\n1. Check browser cache\n2. Check OS cache (hosts file first, then DNS cache)\n3. Ask your configured DNS server (usually your router, ISP, or 8.8.8.8)\n4. That server (recursive resolver) checks its cache\n5. If not cached, resolver asks a Root Name Server (there are 13 root server clusters worldwide)\n6. Root says "for .com, ask these TLD servers"\n7. Resolver asks the .com TLD server\n8. TLD says "for google.com, ask Google's name servers"\n9. Resolver asks Google's authoritative name server\n10. Gets the A record (IP address)\n11. Returns it to you, caches it with TTL\n\n<strong>Hosts file:</strong>\nA local file that maps names to IPs BEFORE DNS is consulted. /etc/hosts on Linux/Mac, C:\\Windows\\System32\\drivers\\etc\\hosts on Windows. Attackers sometimes modify it to redirect traffic.\n\n<strong>DNS over HTTPS (DoH) and DNS over TLS (DoT):</strong>\nEncrypt DNS queries so your ISP/network can't see what domains you're looking up. Privacy improvement.\n\n<strong>DNSSEC:</strong>\nAdds digital signatures to DNS records. Prevents DNS cache poisoning by verifying records came from the real authoritative server.`,
+        memory: `DNS resolution = asking for directions. You ask your local friend (resolver). They ask the city hall (root). City hall says "ask the street department for .com streets" (TLD). Street dept says "ask that building's office" (authoritative). That office gives you the exact room number (IP).`,
+        examTip: `TTL (Time to Live) = how long DNS answers are cached. Low TTL = change propagates fast but more DNS traffic. Hosts file overrides DNS — malware modifying it redirects you to fake sites. DNSSEC protects integrity of DNS responses. DoH/DoT = encrypted DNS (privacy).`,
+        facts: ["13 root server clusters", "Recursive resolver asks all", "TTL=cache duration", "Hosts file overrides", "DNSSEC=signed records", "DoH=DNS over HTTPS"]
+      },
+
+      {
         id: "network-topologies",
         title: "Network Topologies",
         tags: ["net"],
@@ -197,6 +257,30 @@ const SECTIONS = [
         memory: `Stateless firewall = bouncer who just checks your ID matches a list. Stateful firewall = bouncer who remembers you came in earlier and expects you to leave. NGFW = bouncer who reads your lips and knows what you're saying inside.`,
         examTip: `Stateful vs stateless is heavily tested. Stateful = tracks connection state. "Implicit deny" at the end of rule lists — anything not explicitly allowed is blocked. NGFW = Layer 7 inspection. WAF = web app specific.`,
         facts: ["Stateless = per-packet", "Stateful = tracks sessions", "NGFW = Layer 7", "WAF = web apps", "Implicit deny", "Rules: top-down, first match"]
+      },
+
+      {
+        id: "ids-ips",
+        title: "IDS & IPS",
+        tags: ["both"],
+        chain: ["Traffic flows through network", "IDS watches and alerts", "IPS watches and blocks", "Signatures vs anomalies detected", "Incident recorded or prevented"],
+        blurb: "IDS = security camera (sees intrusions, tells you). IPS = security guard (sees intrusions, stops them). One alerts, one acts.",
+        detail: `<strong>IDS (Intrusion Detection System):</strong>\nPassively monitors traffic and logs/alerts on suspicious activity. Does NOT block. It's out-of-band — traffic doesn't pass through it, it just sees a copy.\nIf you want speed without blocking risk, use IDS.\n\n<strong>IPS (Intrusion Prevention System):</strong>\nSits inline — ALL traffic passes through it. Actively blocks malicious traffic in real time. If it fails (hardware failure), it can drop all traffic (fail-closed) or let everything through (fail-open).\n\n<strong>Detection methods:</strong>\n• Signature-based: matches traffic against known attack patterns. Fast, low false positives, BUT can't detect new/unknown attacks (zero-days).\n• Anomaly-based: builds a baseline of "normal" traffic, alerts on deviations. Catches new attacks BUT higher false positive rate.\n• Heuristic/Behavioral: like anomaly but uses rules about behavior, not just statistics.\n\n<strong>Placement:</strong>\nIDS/IPS commonly sits at the network perimeter (after the firewall) to catch what the firewall misses. Host-based versions (HIDS/HIPS) run on individual machines.\n\n<strong>False positives vs false negatives:</strong>\nFalse positive = alert on legitimate traffic (annoying, wastes time)\nFalse negative = misses actual attack (dangerous)`,
+        memory: `IDS = smoke detector (beeps, doesn't spray water). IPS = smoke detector + sprinkler (beeps AND sprays). Signature = known criminal's mugshot. Anomaly = someone acting weird even without a mugshot.`,
+        examTip: `IDS is passive/out-of-band. IPS is inline/active. Signature-based can't catch zero-days. Anomaly-based has more false positives. NIDS = network-based. HIDS = host-based (runs on the endpoint). SIEM collects logs from IDS/IPS and correlates them.`,
+        facts: ["IDS=passive/alerts", "IPS=active/blocks", "Signature=known attacks", "Anomaly=baseline deviation", "HIDS=host-based", "False neg=dangerous"]
+      },
+
+      {
+        id: "dmz",
+        title: "DMZ (Demilitarized Zone)",
+        tags: ["both"],
+        chain: ["Internet = dangerous", "Internal network = protected", "DMZ = buffer zone between them", "Public-facing servers live here", "Compromise here doesn't reach internals"],
+        blurb: "A separate network segment between your firewall and the internet. Web servers, email servers, public-facing stuff goes here — isolated from your internal network.",
+        detail: `The DMZ is a semi-trusted zone. It's more exposed than your internal network but more protected than the raw internet.\n\n<strong>Why it matters:</strong>\nIf your web server gets compromised, an attacker in the DMZ can't directly reach internal systems like databases, HR files, or domain controllers. They're isolated.\n\n<strong>Common DMZ architecture (dual firewall):</strong>\nInternet → [Firewall 1] → DMZ → [Firewall 2] → Internal Network\n\nThe outer firewall allows inbound traffic to the DMZ on specific ports (80, 443).\nThe inner firewall only allows traffic from DMZ to internal on specific needed ports.\n\n<strong>What lives in a DMZ:</strong>\n• Web servers (public website)\n• Email servers (receiving inbound email)\n• DNS servers (public-facing)\n• VPN concentrators\n• Reverse proxies\n\n<strong>What should NOT be in a DMZ:</strong>\n• Domain controllers\n• Databases with sensitive data\n• Internal application servers\n\n<strong>Screened subnet:</strong>\nAnother name for DMZ. One firewall with 3 interfaces: external, DMZ, internal.`,
+        memory: `DMZ = the lobby of a secure building. Visitors (internet traffic) can enter the lobby (DMZ), but they can't get into the offices (internal network) without additional access. Your web server is the receptionist in the lobby.`,
+        examTip: `DMZ = screened subnet = semi-trusted network. Dual-firewall DMZ is more secure than single-firewall (3-legged) DMZ. Web/email/VPN servers go in DMZ. Databases should NEVER be in the DMZ — only the app server that fronts them.`,
+        facts: ["DMZ=screened subnet", "Semi-trusted zone", "Public servers go here", "Dual firewall=more secure", "DB not in DMZ", "Contains breach impact"]
       },
 
       {
@@ -318,6 +402,54 @@ const SECTIONS = [
       },
 
       {
+        id: "vulnerability-management",
+        title: "Vulnerability Management",
+        tags: ["sec"],
+        chain: ["System has flaws", "Scan identifies them", "Prioritize by risk", "Patch or mitigate", "Verify fix & rescan"],
+        blurb: "The ongoing process of finding, ranking, and fixing security weaknesses before attackers exploit them. Never a one-time task.",
+        detail: `<strong>Vulnerability vs Threat vs Risk vs Exploit:</strong>\n• Vulnerability: a weakness (unlocked door)\n• Threat: something that could exploit it (burglar)\n• Risk: likelihood × impact of that happening\n• Exploit: code/method that actually uses the vulnerability\n• CVE (Common Vulnerabilities and Exposures): standardized IDs for known vulnerabilities (CVE-2024-12345)\n\n<strong>CVSS (Common Vulnerability Scoring System):</strong>\nScores vulnerabilities 0-10 based on impact and exploitability.\n• 0.1–3.9 = Low\n• 4.0–6.9 = Medium\n• 7.0–8.9 = High\n• 9.0–10.0 = Critical\n\n<strong>Types of vulnerability scans:</strong>\n• Credentialed scan: scanner logs in to the target. Deeper results, fewer false positives.\n• Non-credentialed (unauthenticated): external attacker's view. Faster, less detail.\n• Active scan: actively probes targets (creates network traffic)\n• Passive scan: watches traffic without sending probes\n\n<strong>Patch management:</strong>\nZero-day: vulnerability with no patch available yet. Attacker exploits it before the vendor knows.\nPatch Tuesday: Microsoft releases patches on the 2nd Tuesday of each month.\nVirtual patching: block the exploit at the firewall/IPS while you wait for the real patch.\n\n<strong>Remediation priority:</strong>\nNot everything gets patched immediately. Risk-based approach: CVSS score + asset criticality + exploitability in the wild.`,
+        memory: `CVE = library catalog number for a known bug. CVSS = how dangerous it is (1-10). Zero-day = the library doesn't have the book catalogued yet, but attackers are already reading it.\n\nCredentialed scan = inspector who has a key. Non-credentialed = inspector checking from the outside.`,
+        examTip: `CVE IDs identify specific vulnerabilities. CVSS scores them. Zero-day = no patch exists yet. Credentialed scan = more accurate, fewer false positives. False positive = scan says vulnerable but it's not. False negative = scan misses a real vulnerability.`,
+        facts: ["CVE=vuln ID", "CVSS=0-10 score", "9-10=Critical", "Zero-day=no patch", "Credentialed=deeper", "Patch Tuesday=2nd Tue"]
+      },
+
+      {
+        id: "cryptography-use-cases",
+        title: "Cryptography Use Cases",
+        tags: ["sec"],
+        chain: ["Data needs protection", "At rest = encrypt storage", "In transit = TLS/VPN", "In use = harder (homomorphic)", "Keys managed carefully"],
+        blurb: "Crypto isn't just one thing — different situations need different approaches. Where data is and what it's doing determines which crypto to apply.",
+        detail: `<strong>Data states:</strong>\n• Data at rest: stored on disk, database, USB. Encrypt with AES-256. Full-disk encryption (FDE) or file-level.\n• Data in transit: moving across a network. Protect with TLS, VPN, SFTP.\n• Data in use: being processed in RAM. Hardest to protect. Emerging: homomorphic encryption (compute on encrypted data).\n\n<strong>Common crypto implementations:</strong>\n• TLS 1.3: current standard for data in transit. Faster handshake than TLS 1.2, forward secrecy by default.\n• AES-256-GCM: authenticated encryption — provides both confidentiality AND integrity.\n• RSA-2048 or ECC P-256: key exchange and digital signatures.\n• bcrypt/Argon2: password hashing (slow by design to prevent brute force).\n• PBKDF2: password-based key derivation.\n\n<strong>Forward Secrecy (Perfect Forward Secrecy / PFS):</strong>\nEven if the server's private key is stolen later, past sessions can't be decrypted. Each session gets a unique temporary key (ephemeral key). TLS 1.3 requires it.\n\n<strong>Key management:</strong>\nHardest part of crypto. If you lose the key, data is gone. If attacker gets the key, all data is exposed.\n• HSM (Hardware Security Module): dedicated hardware for storing and using keys. Keys never leave the HSM.\n• KMS (Key Management Service): cloud service for managing keys (AWS KMS, Azure Key Vault).`,
+        memory: `TLS = wrapping your message in tamper-evident packaging for shipping. AES = the lock on your safe. RSA = the way you agree on which lock to use before you start.\n\nForward secrecy = using a different lock for every conversation so stealing one key doesn't unlock old conversations.`,
+        examTip: `TLS 1.3 = current standard (1.0 and 1.1 deprecated). SSL is dead — always say TLS. PFS = ephemeral keys, TLS 1.3 requires it. HSM = hardware key storage. AES-GCM = authenticated encryption (confidentiality + integrity together).`,
+        facts: ["TLS 1.3=current", "SSL=deprecated", "PFS=ephemeral keys", "HSM=hardware keys", "AES-256-GCM=auth encrypt", "bcrypt=password hashing"]
+      },
+
+      {
+        id: "access-control-models",
+        title: "Access Control Models",
+        tags: ["sec"],
+        chain: ["User requests resource", "Access control model decides", "Based on rules/roles/labels", "Access granted or denied", "Action logged"],
+        blurb: "Four different systems for deciding who can access what. Each has trade-offs between flexibility, control, and complexity.",
+        detail: `<strong>MAC (Mandatory Access Control):</strong>\nThe system enforces access based on labels/classifications. Users can't change permissions on their own objects. Used in government/military.\nExample: a "Top Secret" user can't share a document with a "Secret" clearance person, even if they want to.\nOperating systems: SELinux, older UNIX.\n\n<strong>DAC (Discretionary Access Control):</strong>\nResource owners control access to their own resources. Most flexible, least secure.\nExample: Windows NTFS permissions. You own a file → you decide who can read/write it.\nRisk: if your account is compromised, attacker inherits all your DAC permissions.\n\n<strong>RBAC (Role-Based Access Control):</strong>\nPermissions assigned to roles, users assigned to roles. Most common in enterprise.\nExample: "HR Manager" role = read access to HR files. "Accountant" = read/write to financial systems.\nEasier to manage at scale than DAC. Principle of least privilege enforced per role.\n\n<strong>ABAC (Attribute-Based Access Control):</strong>\nAccess based on attributes of the user, resource, and environment. Most flexible, most complex.\nExample: "Finance employees in the New York office between 9am-5pm on weekdays can access payroll data."\nAttributes: department, job title, location, time of day, device type, clearance level.\n\n<strong>Rule-Based Access Control:</strong>\nGlobal rules applied to everyone. Firewall rules are an example — "nobody from IP range X can access port Y."`,
+        memory: `MAC = strict librarian (clearance label = that's final, can't override). DAC = owner leaves a spare key under the mat (you decide who gets in). RBAC = job title determines your badge access. ABAC = smart door that checks your title, location, time, and mood.`,
+        examTip: `MAC = labels/clearance, system-enforced, can't override (military). DAC = owner controls (most flexible, least secure). RBAC = roles (most common in enterprise). ABAC = attributes (most granular, most complex). Least privilege = RBAC enforces this naturally.`,
+        facts: ["MAC=labels/clearance", "DAC=owner controls", "RBAC=roles", "ABAC=attributes", "MAC=most restrictive", "RBAC=enterprise standard"]
+      },
+
+      {
+        id: "siem-soar",
+        title: "SIEM & SOAR",
+        tags: ["sec"],
+        chain: ["Security events happen everywhere", "SIEM collects and correlates logs", "Alert generated on suspicious pattern", "SOAR automates the response", "Analyst handles the rest"],
+        blurb: "SIEM = the brain that sees everything happening across your network. SOAR = the hands that automatically respond to it.",
+        detail: `<strong>SIEM (Security Information and Event Management):</strong>\nCollects logs from everything: firewalls, servers, endpoints, cloud, apps. Normalizes them into a common format. Correlates events across sources to find patterns that no single device would see.\n\nKey features:\n• Log aggregation from all sources\n• Normalization (different log formats → one standard)\n• Correlation rules: "3 failed logins + 1 success from same IP = possible brute force"\n• Alerting and dashboards\n• Compliance reporting (HIPAA, PCI DSS audit logs)\n• Long-term log retention\n\nExamples: Splunk, IBM QRadar, Microsoft Sentinel, Elastic SIEM\n\n<strong>SOAR (Security Orchestration, Automation, and Response):</strong>\nTakes SIEM alerts and automates the response. Uses playbooks — predefined workflows.\n\nExample playbook for phishing:\n1. Alert fires from SIEM (employee reported phishing email)\n2. SOAR automatically extracts IOCs (malicious links, sender)\n3. Blocks the URL in web proxy\n4. Searches for other employees who received same email\n5. Quarantines infected mailboxes\n6. Creates incident ticket\n7. Notifies SOC analyst\nAll in seconds, without human intervention.\n\n<strong>IOC (Indicators of Compromise):</strong>\nEvidence that a system has been compromised: malicious IPs, file hashes, domain names, registry keys. SIEM uses these to detect threats.`,
+        memory: `SIEM = security camera system with motion detection. SOAR = robot security guard that acts when the camera trips an alarm.\n\nSIEM without SOAR = a fire alarm that rings but doesn't call the fire department. SOAR calls the fire department automatically.`,
+        examTip: `SIEM = aggregate + correlate + alert. SOAR = automate response with playbooks. IOC = evidence of compromise. False positive rate matters — too many alerts = alert fatigue = real alerts missed. Log retention requirements often dictated by compliance (1 year common for PCI).`,
+        facts: ["SIEM=collect+correlate", "SOAR=automate response", "Playbooks=SOAR workflows", "IOC=compromise evidence", "Alert fatigue=too many FPs", "Splunk=popular SIEM"]
+      },
+
+      {
         id: "compliance-frameworks",
         title: "Compliance Frameworks",
         tags: ["both"],
@@ -364,6 +496,42 @@ const SECTIONS = [
       },
 
       {
+        id: "cloud-security",
+        title: "Cloud Security Fundamentals",
+        tags: ["arch"],
+        chain: ["Workload moves to cloud", "Shared responsibility model applies", "Cloud provider secures infrastructure", "You secure your data & config", "Misconfiguration = #1 risk"],
+        blurb: "Cloud security is mostly about knowing what YOU own vs what the cloud provider owns — and making sure your side is locked down.",
+        detail: `<strong>Shared Responsibility Model:</strong>\nThe most important concept in cloud security.\n\n• Cloud provider (AWS/Azure/GCP) is ALWAYS responsible for: physical hardware, hypervisor, network infrastructure, physical security of data centers.\n• Customer is ALWAYS responsible for: data classification, encryption of their data, IAM (who has access), security group rules, application security.\n• The middle varies by service model:\n\nIaaS (like EC2/VMs): YOU manage OS, runtime, app, data. They manage hardware.\nPaaS (like App Service/Lambda): THEY manage OS and runtime. YOU manage app and data.\nSaaS (like Office 365/Salesforce): THEY manage almost everything. YOU manage user accounts and data governance.\n\n<strong>Top cloud security risks:</strong>\n1. Misconfiguration: open S3 buckets, public storage, overly permissive security groups. Responsible for most breaches.\n2. Insufficient IAM: overprivileged roles, leaked API keys, no MFA.\n3. Insecure APIs: cloud is API-driven. Unprotected APIs = attack surface.\n4. Lack of visibility: cloud sprawl, shadow IT, assets you don't know exist.\n\n<strong>Cloud security tools (know the categories):</strong>\n• CSPM (Cloud Security Posture Management): continuously checks your cloud config for misconfigurations.\n• CWPP (Cloud Workload Protection Platform): runtime protection for cloud workloads.\n• CASB (Cloud Access Security Broker): visibility and control over cloud app usage (especially SaaS).\n• CNAPP: combines CSPM + CWPP + more into one platform.`,
+        memory: `Shared responsibility = renting an apartment. Landlord (cloud provider) maintains the building, plumbing, walls. You (customer) are responsible for what's inside — locking your door, not leaving valuables visible.\n\nS3 bucket left public = leaving your apartment door open. Most common cloud breach cause.`,
+        examTip: `Shared responsibility model is heavily tested. For IaaS: you own the OS up. For SaaS: you own the data + accounts only. Misconfiguration = #1 cloud breach cause. CSPM detects misconfigs automatically. Know IaaS vs PaaS vs SaaS differences for exam.`,
+        facts: ["IaaS=you manage OS+", "PaaS=you manage app+", "SaaS=you manage data+", "Misconfiguration=#1 risk", "CSPM=posture mgmt", "CASB=SaaS visibility"]
+      },
+
+      {
+        id: "secure-design-principles",
+        title: "Secure Design Principles",
+        tags: ["arch"],
+        chain: ["System being designed", "Security built in (not bolted on)", "Principles applied", "Attack surface minimized", "System resilient by design"],
+        blurb: "The principles every Security Architect applies to every design. These are the mental checklist before any system goes live.",
+        detail: `<strong>Security by Design principles (memorize all of these):</strong>\n\n• <strong>Least Privilege:</strong> give every user, process, and service only the minimum access needed. Nothing extra.\n\n• <strong>Defense in Depth:</strong> multiple security layers. If one fails, others still protect.\n\n• <strong>Fail Secure (Fail Closed):</strong> when a control fails, default to denying access. Not the other way.\n\n• <strong>Separation of Duties:</strong> no single person completes a sensitive action alone. Reduces fraud and errors.\n\n• <strong>Minimize Attack Surface:</strong> disable everything you don't need. Every open port, running service, and installed feature is a potential entry point. Less = safer.\n\n• <strong>Open Design:</strong> security should not rely on keeping the algorithm secret (security through obscurity is not real security). Use publicly reviewed standards.\n\n• <strong>Psychological Acceptability:</strong> security controls should not be so hard to use that people work around them.\n\n• <strong>Economy of Mechanism (KISS):</strong> keep it simple. Complex systems have more bugs and are harder to audit.\n\n• <strong>Complete Mediation:</strong> every access request to every resource must be checked. No caching of permissions without revalidation.\n\n• <strong>Secure Default:</strong> out-of-the-box configuration should be secure. Users opt-in to weaker settings, not opt-out of strong ones.\n\n• <strong>Input Validation:</strong> never trust user input. Always validate, sanitize, and encode on the server side.\n\n• <strong>Immutable Infrastructure:</strong> don't patch running servers — destroy and redeploy from a known-good image.`,
+        memory: `These principles are the Security Architect's Ten Commandments. Most start with "assume the user is an idiot, the network is hostile, and the code will be compromised."\n\nFail secure = if in doubt, lock it out. Least privilege = just enough, nothing more.`,
+        examTip: `CISSP and CASP+ love these principles. Distinguish "fail secure" (deny on failure) from "fail open" (allow on failure — only for life-safety like emergency exits). "Security through obscurity" = not valid security. Input validation prevents most injection attacks.`,
+        facts: ["Least privilege", "Defense in depth", "Fail secure=deny", "Separation of duties", "Minimize attack surface", "Secure by default", "No obscurity-only security"]
+      },
+
+      {
+        id: "network-security-arch",
+        title: "Network Security Architecture",
+        tags: ["arch"],
+        chain: ["Network designed", "Segmentation applied", "Traffic filtered at each boundary", "Monitoring everywhere", "Attacker contained if they get in"],
+        blurb: "How a Security Architect thinks about network design: not just firewalls at the edge, but multiple trust boundaries throughout.",
+        detail: `<strong>Security zones (typical enterprise):</strong>\n• Internet zone: untrusted, everything external\n• DMZ: semi-trusted, public-facing servers\n• Corporate network: trusted, internal users\n• Secure zones: finance, HR, PCI-scoped systems\n• Management network: out-of-band network for managing infrastructure (never mixed with production)\n• OT/SCADA: operational technology, isolated from IT\n\n<strong>Network Access Control (NAC):</strong>\nControls who/what can connect to the network. Checks: is this device registered? Is it compliant (patched, AV up to date)? Then assigns network segment accordingly. Non-compliant devices go to a remediation VLAN.\n\n<strong>Microsegmentation:</strong>\nVery fine-grained segmentation down to individual workloads or VMs. Enforced by software-defined networking (SDN) or host-based firewalls. Each app only talks to what it explicitly needs. Reduces lateral movement.\n\n<strong>East-West vs North-South traffic:</strong>\nNorth-South: traffic entering/leaving your network (internet ↔ data center). Traditional firewalls focus here.\nEast-West: traffic between systems INSIDE your network (server to server). Often unmonitored — attacker moves laterally here.\nModern security monitors both. Zero Trust requires inspecting east-west traffic.\n\n<strong>Software Defined Networking (SDN):</strong>\nSeparates the control plane (decisions) from the data plane (forwarding). Network behavior controlled by software. Enables microsegmentation, programmable networks, faster response.`,
+        memory: `Old architecture = moat around a castle (only north-south matters). Modern architecture = castle where every room has its own lock (microsegmentation). Even if attacker breaches the outer wall, each room is a new challenge.\n\nNAC = the front desk that checks your ID and escorts you to the right floor.`,
+        examTip: `East-west traffic = lateral movement risk. Microsegmentation limits it. NAC verifies device compliance before network access. Management network = always separate (attackers on corporate network shouldn't reach your firewalls). OT/SCADA = air-gapped or heavily isolated from IT.`,
+        facts: ["North-South=external", "East-West=lateral", "NAC=device compliance", "Microsegmentation=fine control", "SDN=software-controlled", "OT=isolated from IT"]
+      },
+
+      {
         id: "iam-deep",
         title: "Identity & Access Management (IAM)",
         tags: ["arch"],
@@ -373,6 +541,64 @@ const SECTIONS = [
         memory: `IAM = the HR department of your security infrastructure. Hire someone = provision access. Promote them = update roles. They quit = deprovision immediately. Forget to deprovision = orphaned account = backdoor.\n\nSSO = master key that opens many doors. SAML = passport used between organizations.`,
         examTip: `SAML = federation/SSO. OAuth = authorization (what apps can do on your behalf). OIDC = identity layer on top of OAuth (authentication). Orphaned accounts = top cause of breaches. PAM = controls for admin accounts. JIT = zero standing privileges.`,
         facts: ["SAML=SSO/federation", "OAuth=authorization", "OIDC=authentication", "PAM=admin controls", "JIT=temp access", "Orphaned accts=risk", "RBAC=role-based"]
+      },
+
+    ]
+  },
+
+  {
+    id: "quick-ref",
+    icon: "⚡",
+    title: "Quick Reference",
+    subtitle: "Port numbers, acronyms, and exam-day fast facts — scan like a list",
+    concepts: [
+
+      {
+        id: "port-numbers",
+        title: "Port Numbers — The Full List",
+        tags: ["both"],
+        chain: ["Service runs on a server", "Listens on a specific port", "Client connects to that port", "Communication established"],
+        blurb: "Every exam-relevant port number in one place. These come up constantly on both Network+ and Security+.",
+        detail: `<strong>FTP (File Transfer Protocol):</strong> TCP 20 (data), TCP 21 (control) — insecure, replaced by SFTP/FTPS\n\n<strong>SSH (Secure Shell):</strong> TCP 22 — secure remote access, SFTP runs over this\n\n<strong>Telnet:</strong> TCP 23 — insecure remote access (plaintext), replaced by SSH\n\n<strong>SMTP (Simple Mail Transfer Protocol):</strong> TCP 25 — sends email between servers\n\n<strong>DNS (Domain Name System):</strong> UDP 53 (mostly), TCP 53 (zone transfers + large responses)\n\n<strong>DHCP:</strong> UDP 67 (server), UDP 68 (client)\n\n<strong>TFTP (Trivial FTP):</strong> UDP 69 — simple, no auth, used for booting/config transfer\n\n<strong>HTTP:</strong> TCP 80 — unencrypted web\n\n<strong>Kerberos:</strong> TCP/UDP 88 — network authentication protocol (Active Directory)\n\n<strong>POP3 (Post Office Protocol v3):</strong> TCP 110 — downloads email, old\n\n<strong>NTP (Network Time Protocol):</strong> UDP 123 — keeps clocks synchronized (critical for Kerberos, certificates, logging)\n\n<strong>NetBIOS:</strong> TCP/UDP 137-139 — old Windows name resolution\n\n<strong>IMAP (Internet Message Access Protocol):</strong> TCP 143 — modern email retrieval, stays on server\n\n<strong>SNMP (Simple Network Management Protocol):</strong> UDP 161 (queries), UDP 162 (traps/alerts)\n\n<strong>LDAP (Lightweight Directory Access Protocol):</strong> TCP 389 — directory services, Active Directory\n\n<strong>HTTPS:</strong> TCP 443 — encrypted web (HTTP + TLS)\n\n<strong>SMB (Server Message Block):</strong> TCP 445 — Windows file/printer sharing\n\n<strong>SMTP Secure (SMTPS):</strong> TCP 465 or 587 — encrypted email sending\n\n<strong>LDAPS (LDAP over SSL/TLS):</strong> TCP 636 — encrypted directory access\n\n<strong>IMAP Secure:</strong> TCP 993\n\n<strong>POP3 Secure:</strong> TCP 995\n\n<strong>RDP (Remote Desktop Protocol):</strong> TCP 3389 — Windows remote desktop\n\n<strong>MySQL:</strong> TCP 3306 — MySQL database\n\n<strong>PostgreSQL:</strong> TCP 5432\n\n<strong>Syslog:</strong> UDP 514 — system log forwarding\n\n<strong>BGP (Border Gateway Protocol):</strong> TCP 179 — internet backbone routing\n\n<strong>RADIUS:</strong> UDP 1812 (auth), UDP 1813 (accounting)\n\n<strong>TACACS+:</strong> TCP 49\n\n<strong>IPsec IKE:</strong> UDP 500\n\n<strong>SQL Server:</strong> TCP 1433`,
+        memory: `The most critical ones: 22=SSH, 23=Telnet (bad), 25=SMTP, 53=DNS, 80=HTTP, 443=HTTPS, 3389=RDP, 445=SMB.\n\nFor security: know the INSECURE ones: 23 (Telnet), 21 (FTP), 80 (HTTP), 110 (POP3), 143 (IMAP). Their secure versions are just higher numbers or use SSH.`,
+        examTip: `Questions often ask "which should you disable to improve security?" — Telnet (23), FTP (21), HTTP (80) all transmit in cleartext. RDP (3389) is constantly attacked externally — should not be exposed to internet. SMB (445) = ransomware loves this port (WannaCry used it).`,
+        facts: ["SSH=22", "FTP=21/20", "SMTP=25", "DNS=53", "HTTP=80", "HTTPS=443", "RDP=3389", "SMB=445", "LDAP=389", "RADIUS=1812"]
+      },
+
+      {
+        id: "acronyms",
+        title: "Acronyms Master List",
+        tags: ["both"],
+        chain: ["Exam question uses acronym", "You know what it stands for", "You know what it does", "You answer correctly"],
+        blurb: "The acronyms that appear most on Network+ and Security+. Knowing the full name usually tells you what it does.",
+        detail: `<strong>Networking:</strong>\nDHCP = Dynamic Host Configuration Protocol\nDNS = Domain Name System\nNAT = Network Address Translation\nPAT = Port Address Translation\nVLAN = Virtual Local Area Network\nSTP = Spanning Tree Protocol\nOSPF = Open Shortest Path First\nBGP = Border Gateway Protocol\nNAC = Network Access Control\nSDN = Software Defined Networking\nMPLS = Multiprotocol Label Switching (WAN technology)\nQoS = Quality of Service (prioritizes certain traffic)\n\n<strong>Security:</strong>\nAAA = Authentication, Authorization, Accounting\nACL = Access Control List\nAES = Advanced Encryption Standard\nAPT = Advanced Persistent Threat\nCA = Certificate Authority\nCIA = Confidentiality, Integrity, Availability\nCRL = Certificate Revocation List\nCSIRT = Computer Security Incident Response Team\nDLP = Data Loss Prevention\nEDR = Endpoint Detection and Response\nFDE = Full Disk Encryption\nHSM = Hardware Security Module\nIAM = Identity and Access Management\nIDS = Intrusion Detection System\nIPS = Intrusion Prevention System\nIOC = Indicator of Compromise\nMFA = Multi-Factor Authentication\nMITM = Man-in-the-Middle\nNGFW = Next-Generation Firewall\nOCSP = Online Certificate Status Protocol\nPAM = Privileged Access Management\nPHI = Protected Health Information (HIPAA)\nPII = Personally Identifiable Information\nPKI = Public Key Infrastructure\nRBAC = Role-Based Access Control\nSAML = Security Assertion Markup Language\nSIEM = Security Information and Event Management\nSOAR = Security Orchestration Automation Response\nSOC = Security Operations Center\nSSL = Secure Sockets Layer (deprecated — use TLS)\nTLS = Transport Layer Security\nUBA = User Behavior Analytics\nVPN = Virtual Private Network\nWAF = Web Application Firewall\nZTNA = Zero Trust Network Access\n\n<strong>Compliance:</strong>\nCMMC = Cybersecurity Maturity Model Certification\nGDPR = General Data Protection Regulation\nHIPAA = Health Insurance Portability and Accountability Act\nISMS = Information Security Management System\nPCI DSS = Payment Card Industry Data Security Standard\nSOC 2 = Service Organization Control 2`,
+        memory: `Don't try to memorize all at once — group them. Network acronyms (DHCP/DNS/NAT/VLAN) vs Security acronyms (PKI/MFA/SIEM/IAM) vs Compliance (HIPAA/PCI/GDPR).\n\nIf you see an acronym and blank: read each letter as a word. PKI = Public Key Infrastructure = a system for public keys. That usually tells you the function.`,
+        examTip: `Both exams love acronym swap questions: "Which technology provides X?" and they list 4 acronyms. Know the function of each. SOC = the team. SIEM = the tool the SOC uses. SOAR = the automation on top of SIEM.`,
+        facts: ["AAA=auth+authz+accounting", "CIA=3 goals", "PKI=cert system", "SIEM=log correlation", "SOC=security team", "RBAC=roles", "TLS=not SSL"]
+      },
+
+      {
+        id: "attack-vectors",
+        title: "Attack Surfaces & Vectors",
+        tags: ["sec"],
+        chain: ["Attacker has a target", "Chooses an attack surface", "Finds a vector to exploit", "Gains initial access", "Lateral movement begins"],
+        blurb: "Attack surface = everything that could be targeted. Attack vector = the specific path used. Reducing one reduces the other.",
+        detail: `<strong>Attack Surface:</strong>\nAll possible entry points into a system: open ports, running services, user accounts, APIs, physical access, email, web apps, supply chain.\n\n<strong>Common attack vectors:</strong>\n\n• Email/Phishing: most common initial access vector by far. Malicious attachments or links.\n\n• Web application: SQLi, XSS, CSRF, broken auth. OWASP Top 10 covers the main ones.\n\n• Credentials: stolen/leaked/guessed passwords. Password spray (try common passwords on many accounts), credential stuffing (use breached credentials on other sites).\n\n• Unpatched software: CVEs exploited on known-vulnerable versions.\n\n• Supply chain: compromising a software vendor or third-party dependency (SolarWinds attack = classic example).\n\n• Physical: tailgating into a building, malicious USB, shoulder surfing.\n\n• Wireless: evil twin AP (fake WiFi hotspot), deauth attacks.\n\n• Insider threat: malicious or negligent employees with legitimate access.\n\n<strong>Kill Chain (Lockheed Martin Cyber Kill Chain):</strong>\nStages of an attack:\n1. Reconnaissance: gather intel about target\n2. Weaponization: build the exploit/payload\n3. Delivery: send phishing email / exploit web app\n4. Exploitation: code executes on victim\n5. Installation: malware installed, persistence\n6. Command & Control (C2): attacker communicates with malware\n7. Actions on Objectives: data theft, ransomware, destruction\n\n<strong>MITRE ATT&CK:</strong>\nFramework of real attacker tactics, techniques, and procedures (TTPs). Used by defenders to understand how attacks happen and detect them. More detailed than Kill Chain.`,
+        memory: `Kill Chain = movie heist plan. Scout the place (recon), build the tools (weaponize), deliver them (delivery), crack the safe (exploit), hide the tools (install), radio HQ (C2), take the money (objective).\n\nBreaking any link in the chain = attack fails. Defenders aim to detect and break as early as possible.`,
+        examTip: `Kill Chain: if you stop the attack at Delivery, it never exploits. Detect at Reconnaissance = best case. C2 traffic = beaconing (malware phoning home regularly). MITRE ATT&CK = reference for TTPs, used in threat hunting. Supply chain attack = one breach compromises many downstream.`,
+        facts: ["Kill Chain=7 stages", "C2=command&control", "Phishing=#1 vector", "Credential stuffing", "MITRE ATT&CK=TTPs", "Supply chain risk", "Recon=earliest stage"]
+      },
+
+      {
+        id: "risk-management",
+        title: "Risk Management",
+        tags: ["both"],
+        chain: ["Asset identified", "Threat identified", "Vulnerability assessed", "Risk = likelihood × impact", "Response chosen"],
+        blurb: "Risk can never be zero — the goal is managing it to an acceptable level. Four ways to respond: accept, avoid, transfer, mitigate.",
+        detail: `<strong>Risk formula:</strong>\nRisk = Threat × Vulnerability × Asset Value\nOr simplified: Risk = Likelihood × Impact\n\n<strong>Risk response options (MATT):</strong>\n• Mitigate (reduce): implement controls to reduce likelihood or impact. Most common.\n• Accept: decide the cost of mitigation > cost of the risk. Document the decision. (Also called residual risk — risk left after mitigations.)\n• Transfer: shift the risk to someone else. Cyber insurance = transferring financial risk. Outsourcing a service = transferring operational risk.\n• Avoid: stop doing the risky activity entirely. If the app is too risky to operate, shut it down.\n\n<strong>Quantitative vs Qualitative risk analysis:</strong>\nQuantitative: numbers. Calculate financial impact.\n• SLE (Single Loss Expectancy) = asset value × exposure factor (% of asset lost in one incident)\n• ARO (Annual Rate of Occurrence) = how often the incident happens per year\n• ALE (Annual Loss Expectancy) = SLE × ARO\nIf ALE > cost of control → implement the control.\n\nQualitative: subjective ratings (High/Medium/Low). Risk matrix. Faster, less precise.\n\n<strong>Risk appetite vs Risk tolerance:</strong>\nRisk appetite: how much risk the organization is willing to accept strategically (high level).\nRisk tolerance: acceptable deviation from the risk appetite in specific situations.`,
+        memory: `MATT = Mitigate, Accept, Transfer, Transfer... no: Mitigate, Accept, Transfer, Avoid.\n\nALE = what you lose per year on average. If a control costs less than ALE → worth it. If it costs more → probably just accept the risk.\n\nInsurance = risk transfer. Firewall = risk mitigation. Shutting down a service = risk avoidance.`,
+        examTip: `ALE = SLE × ARO. Know these calculations — exam will test them. Residual risk = risk remaining after controls. Inherent risk = risk before any controls. Risk acceptance must be documented and signed off by management. Cyber insurance = risk transfer.`,
+        facts: ["ALE=SLE×ARO", "Mitigate=reduce", "Accept=document it", "Transfer=insurance", "Avoid=stop activity", "Residual=leftover risk", "Qualitative=High/Med/Low"]
       },
 
     ]
