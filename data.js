@@ -547,6 +547,76 @@ const SECTIONS = [
   },
 
   {
+    id: "cryptography",
+    icon: "🔑",
+    title: "Cryptography",
+    subtitle: "Encryption, keys, protocols, and attacks — the math that makes security work",
+    concepts: [
+
+      {
+        id: "symmetric-deep",
+        title: "Symmetric Encryption — Block Ciphers & Modes",
+        tags: ["sec", "arch"],
+        chain: ["Plaintext in", "Block cipher chops it up", "Mode of operation chains blocks", "Key applied each round", "Ciphertext out"],
+        blurb: "AES is the algorithm. The mode of operation is how it handles data larger than one block — and the wrong mode can break security even with a strong cipher.",
+        detail: `<strong>Block vs Stream ciphers:</strong>\nBlock cipher: encrypts fixed-size chunks (AES = 128-bit blocks). If your data is larger, a mode of operation handles the chaining.\nStream cipher: encrypts one bit/byte at a time (RC4, ChaCha20). Faster for streaming data.\n\n<strong>Modes of operation — this is what breaks most implementations:</strong>\n\n• <strong>ECB (Electronic Codebook):</strong> encrypts each block independently. Same plaintext block = same ciphertext block. Never use it. Famous failure: encrypted images show outlines because identical blocks produce identical output.\n\n• <strong>CBC (Cipher Block Chaining):</strong> each block XORed with previous ciphertext before encryption. Requires an IV (Initialization Vector). Sequential — can't parallelize. Vulnerable to padding oracle attacks.\n\n• <strong>CTR (Counter Mode):</strong> turns a block cipher into a stream cipher. Encrypts a counter value, XORs result with plaintext. Parallelizable. No padding needed. But: reusing the same key+counter = catastrophic.\n\n• <strong>GCM (Galois/Counter Mode):</strong> CTR mode + built-in authentication tag. Provides confidentiality AND integrity (AEAD). TLS 1.3 default. AES-256-GCM = what you should be using.\n\n<strong>IV (Initialization Vector):</strong>\nA random value used to ensure identical plaintexts produce different ciphertexts. Must be unique per encryption operation. Never reuse an IV with the same key — especially in CTR/GCM mode where reuse = total break.`,
+        memory: `ECB = encrypt your diary and every time you write "Dear diary" it looks the same. GCM = the gold standard — it encrypts AND checks the data wasn't tampered with, in one pass.\n\nMode matters more than people think. AES-ECB with a 256-bit key is still broken. AES-GCM with a 128-bit key is solid.`,
+        examTip: `ECB = never use (patterns leak). GCM = preferred (AEAD). CBC = legacy, watch for padding oracle. CTR = fine but IV reuse = broken. For exam: "which mode provides both confidentiality and integrity?" → GCM. "Which mode is most dangerous?" → ECB.`,
+        facts: ["AES block=128 bits", "ECB=never use", "GCM=AEAD (auth+encrypt)", "CTR=parallelizable", "CBC=needs IV", "IV reuse=catastrophic"]
+      },
+
+      {
+        id: "asymmetric-internals",
+        title: "Asymmetric Cryptography — How the Math Works",
+        tags: ["sec", "arch"],
+        chain: ["Hard math problem chosen", "Public/private keys derived from it", "Public key shared freely", "Private key never leaves", "Math makes reversal infeasible"],
+        blurb: "RSA, ECC, and Diffie-Hellman all rely on math problems that are easy in one direction and computationally infeasible to reverse. That asymmetry is the whole trick.",
+        detail: `<strong>RSA — Integer Factorization Problem:</strong>\nGenerating keys: pick two huge primes p and q. Multiply them: n = p×q. Easy to compute. But given only n, finding p and q back takes longer than the age of the universe (for large enough n).\nPublic key = (n, e). Private key = (n, d) where d is derived from p and q.\nEncryption: ciphertext = plaintext^e mod n\nDecryption: plaintext = ciphertext^d mod n\nSecurity rests entirely on factoring being hard.\n\n<strong>Key sizes:</strong>\nRSA-2048 = current minimum. RSA-4096 = higher security. RSA-1024 = broken, don't use.\nRSA is slow — used only for key exchange and signatures, not bulk encryption.\n\n<strong>Discrete Logarithm Problem (DH, DSA):</strong>\nGiven g^x mod p, find x. Easy to compute forward, hard to reverse.\n\n<strong>Elliptic Curve Discrete Log Problem (ECC):</strong>\nSame idea, different math surface. Much harder per bit → same security with smaller keys.\nRSA-3072 ≈ ECC-256 in security strength.\n\n<strong>Hybrid encryption (how it's actually used):</strong>\n1. Generate a random symmetric key (AES-256)\n2. Encrypt that key with RSA or ECC (asymmetric)\n3. Encrypt actual data with AES (symmetric, fast)\n4. Send both. Recipient decrypts the AES key first, then the data.\nTLS, PGP, SSH — all use this pattern.`,
+        memory: `RSA = combination lock where only you know p and q. Anyone can snap the lock shut (encrypt with public key). Only you can open it (private key knows the factors).\n\nAsymmetric = slow and elegant for small things (keys, signatures). Symmetric = fast and dumb for big things (actual data). Real systems use both.`,
+        examTip: `RSA security = difficulty of factoring large numbers. ECC = smaller keys, same strength (prefer over RSA for new systems). RSA should never encrypt bulk data directly — only wrap symmetric keys. RSA-2048 = minimum today. ECC-256 = equivalent to RSA-3072.`,
+        facts: ["RSA=factoring problem", "ECC=elliptic curve DLP", "RSA-2048=minimum", "ECC-256=RSA-3072 strength", "Hybrid=asym wraps sym key", "Asym=slow, Sym=fast"]
+      },
+
+      {
+        id: "diffie-hellman",
+        title: "Diffie-Hellman Key Exchange",
+        tags: ["sec", "arch"],
+        chain: ["Two parties, no shared secret yet", "Exchange public values over insecure channel", "Each mixes public + private", "Arrive at same shared secret", "Eavesdropper can't compute it"],
+        blurb: "The magic trick of modern cryptography: two parties agree on a shared secret over a completely public channel, and anyone watching can't figure out what that secret is.",
+        detail: `DH is not encryption — it's key agreement. It solves the fundamental problem: how do you share a key with someone if you've never met and someone is listening to everything?\n\n<strong>How it works (simplified):</strong>\n1. Agree publicly on a large prime p and a generator g (public, attacker knows these)\n2. Alice picks a secret number a. Computes A = g^a mod p. Sends A to Bob.\n3. Bob picks a secret number b. Computes B = g^b mod p. Sends B to Alice.\n4. Alice computes: s = B^a mod p = g^(ab) mod p\n5. Bob computes: s = A^b mod p = g^(ab) mod p\n6. Both have s. Attacker has A, B, g, p — but computing a or b = discrete log problem = infeasible.\n\n<strong>DHE (Ephemeral DH):</strong>\nA new keypair generated for EVERY session. Private keys discarded after. This gives Perfect Forward Secrecy (PFS) — if the server's long-term private key is stolen later, past sessions stay encrypted because those ephemeral keys are gone.\n\n<strong>ECDHE:</strong>\nSame idea, using elliptic curve math. Smaller, faster. What TLS 1.3 uses by default.\n\n<strong>Static DH (no ephemeral):</strong>\nReuses the same keys. No PFS. If private key leaks, all past sessions can be decrypted. Deprecated in TLS 1.3.`,
+        memory: `DH = paint mixing. You and a friend each have a secret color. Start with a shared public color. Each mixes in your secret, exchange the mixtures publicly. Each mixes the other's mixture with your secret. Same final color. Eavesdropper can't reverse the mixing.\n\nEphemeral = use a new secret color every conversation. Yesterday's conversations stay safe even if today's secret leaks.`,
+        examTip: `DH = key agreement, not encryption. DHE/ECDHE = ephemeral = Perfect Forward Secrecy. TLS 1.3 requires PFS — no static DH or RSA key exchange. "How does TLS achieve PFS?" → ECDHE. The discrete log problem is what makes DH secure.`,
+        facts: ["DH=key agreement", "Not encryption", "DHE=ephemeral=PFS", "ECDHE=ECC version", "TLS 1.3=ECDHE required", "Static DH=no PFS", "Discrete log=hard problem"]
+      },
+
+      {
+        id: "ecc-deep",
+        title: "Elliptic Curve Cryptography (ECC)",
+        tags: ["sec", "arch"],
+        chain: ["Curve defined over finite field", "Points form a mathematical group", "Point multiplication easy", "Reversing it (ECDLP) is hard", "That hardness = security"],
+        blurb: "ECC gives you RSA-level security with keys roughly 10× smaller. It's why your phone can do TLS and your IoT device can sign firmware updates.",
+        detail: `<strong>The math (conceptually):</strong>\nAn elliptic curve: y² = x³ + ax + b. Points on this curve form a group — you can "add" points together.\nScalar multiplication: start at point P, add it to itself k times → Q = k×P. Easy to compute.\nThe hard part: given P and Q, find k. That's the Elliptic Curve Discrete Logarithm Problem (ECDLP). Much harder per bit than RSA's factoring.\n\n<strong>Key size comparison:</strong>\nRSA-2048 ≈ ECC-224\nRSA-3072 ≈ ECC-256 (NIST P-256, most common today)\nRSA-7680 ≈ ECC-384\nECC-256 = same security as RSA-3072, but the key is 12× smaller.\n\n<strong>Common curves:</strong>\n• NIST P-256 (secp256r1): most common. Used in TLS, code signing, FIDO2.\n• NIST P-384: higher security, US gov requirement for Top Secret.\n• Curve25519: designed by Bernstein. Resistant to side-channel attacks by design. Used in Signal, WireGuard, SSH.\n• secp256k1: used by Bitcoin.\n\n<strong>ECC applications:</strong>\n• ECDH / ECDHE: key agreement\n• ECDSA: digital signatures — but depends on good randomness (bad RNG broke ECDSA on PlayStation 3)\n• EdDSA / Ed25519: faster, deterministic signatures (no random number needed). Preferred for new systems.\n\n<strong>Curve25519 vs NIST curves:</strong>\nNIST curves have constants chosen by the NSA with unexplained seeds. No backdoor proven, but Curve25519 has provably transparent, safe parameter selection. Security community prefers it.`,
+        memory: `ECC = sports car (faster, smaller, just as powerful as a truck). RSA = a truck. Same job, different engineering.\n\nEd25519 = the specific model most cryptographers prefer today. Used in SSH keys, Signal, WireGuard. If you're generating an SSH key right now: use Ed25519.`,
+        examTip: `ECC = smaller keys, same strength, faster operations. ECDSA = ECC-based signatures. Ed25519 = preferred modern signature algorithm. P-256 = most common curve in TLS. ECC-256 ≈ RSA-3072. ECC is vulnerable to quantum computers (Shor's algorithm breaks it).`,
+        facts: ["ECC=smaller keys same strength", "P-256=most common", "Curve25519=modern preferred", "ECDSA=signatures", "Ed25519=deterministic", "ECC-256=RSA-3072 strength"]
+      },
+
+      {
+        id: "aead",
+        title: "Authenticated Encryption (AEAD)",
+        tags: ["sec", "arch"],
+        chain: ["Plaintext in", "Encrypted for confidentiality", "Auth tag computed over ciphertext", "Ciphertext + tag sent", "Receiver verifies tag before decrypting"],
+        blurb: "Encryption alone doesn't stop tampering. AEAD combines encryption and integrity in one operation — you can't have confidentiality without the integrity check.",
+        detail: `<strong>The problem with encryption-only:</strong>\nEncryption gives confidentiality — nobody can read it. But an attacker can still flip bits in the ciphertext. You decrypt and get garbage or, worse, subtly wrong data. This is a malleability attack. CBC mode is famously exploitable this way (padding oracle attacks).\n\n<strong>Encrypt-then-MAC (the old approach):</strong>\nEncrypt the data, then compute an HMAC over the ciphertext. Receiver checks MAC first, decrypts only if valid. Secure but two operations — easy to get the order wrong (MAC-then-encrypt = vulnerable).\n\n<strong>AEAD (Authenticated Encryption with Associated Data):</strong>\nDoes both in a single integrated operation. An authentication tag is produced alongside the ciphertext. If ANY bit of the ciphertext is modified, decryption fails. The "Associated Data" = headers/metadata you want to authenticate without encrypting (e.g., packet headers).\n\n<strong>AES-GCM:</strong>\nGalois/Counter Mode. AES-CTR for encryption + GHASH for authentication. 128-bit auth tag. Standard in TLS 1.3, IPsec, SSH.\nCritical weakness: nonce reuse with the same key → authentication tag can be forged and the key recovered. Nonce = must be unique every single time.\n\n<strong>ChaCha20-Poly1305:</strong>\nChaCha20 stream cipher + Poly1305 MAC. Faster than AES-GCM on hardware without AES acceleration (mobile, IoT, embedded). Used in TLS 1.3, WireGuard, Signal. Also AEAD.\n\n<strong>Why this matters architecturally:</strong>\nA padding oracle attack (POODLE on SSL 3.0) works by modifying ciphertext and reading error messages. AEAD eliminates this whole attack class — tampered ciphertext simply fails to decrypt.`,
+        memory: `Encryption only = tamper-evident envelope with no seal. AEAD = envelope that self-destructs if anyone touches it.\n\nAES-GCM = industry workhorse. ChaCha20-Poly1305 = the mobile-friendly twin. TLS 1.3 supports only these two — no CBC, no unauthenticated modes.`,
+        examTip: `AEAD = confidentiality + integrity in one. AES-GCM = most common (TLS 1.3). ChaCha20-Poly1305 = alternative for devices without AES hardware. Nonce reuse in GCM = catastrophic key recovery possible. "What does the auth tag protect?" → proves ciphertext wasn't modified.`,
+        facts: ["AEAD=encrypt+authenticate", "AES-GCM=TLS 1.3 default", "ChaCha20-Poly1305=mobile", "Auth tag=128-bit", "Nonce reuse=critical flaw", "TLS 1.3=AEAD only"]
+      },
+
+    ]
+  },
+
+  {
     id: "quick-ref",
     icon: "⚡",
     title: "Quick Reference",
