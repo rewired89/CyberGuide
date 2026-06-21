@@ -118,16 +118,17 @@ function renderHome() {
     <h1>Your path to <span>Security Architect</span></h1>
     <p class="hero-sub">One concept at a time. Each idea connects to the next — like links in a chain. Short, real, no fluff. Built for your brain.</p>
     <div class="path-cards" id="pathCards"></div>
-    <div style="margin-bottom:16px">
-      <div class="detail-label">Your progress</div>
+    <div style="margin-bottom:20px;animation:fadeUp .5s .18s ease both">
+      <div class="detail-label">Overall progress</div>
       <div class="section-progress-bar" style="margin-bottom:8px">
         <div class="section-progress-fill" style="width:${total ? Math.round(learned/total*100) : 0}%"></div>
       </div>
       <div style="font-size:13px;color:var(--text-muted)">${learned} of ${total} concepts marked as learned</div>
     </div>
-    <div style="padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;max-width:600px">
+    <div style="padding:22px 24px;background:rgba(7,12,24,.72);backdrop-filter:blur(14px);border:1px solid rgba(0,200,255,.12);border-radius:14px;max-width:600px;position:relative;overflow:hidden;animation:fadeUp .5s .22s ease both">
+      <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,255,.4),rgba(168,85,247,.3),transparent)"></div>
       <div class="detail-label">The Certification Path</div>
-      <div style="font-size:13px;color:var(--text-muted);line-height:1.8">
+      <div style="font-size:13px;color:var(--text-muted);line-height:2">
         <strong style="color:var(--text)">1. CompTIA Network+</strong> → Foundations + networking<br>
         <strong style="color:var(--text)">2. CompTIA Security+</strong> → Core security concepts<br>
         <strong style="color:var(--text)">3. CASP+ or CISSP</strong> → Advanced/architect level<br>
@@ -392,5 +393,87 @@ function tagLabel(tag) {
   return { net: 'Net+', sec: 'Sec+', both: 'Both', arch: 'Architect' }[tag] || tag;
 }
 
+// ── Particle network background ────────────────────────────────────────────
+function initParticles() {
+  const canvas = document.getElementById('bgCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  let W, H, particles, mouse = { x: -9999, y: -9999 };
+  const COUNT = 55;
+  const MAX_DIST = 130;
+  const CYAN = '0,200,255';
+  const PURPLE = '168,85,247';
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function mkParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - .5) * .45,
+      vy: (Math.random() - .5) * .45,
+      r: Math.random() * 1.8 + .6,
+      color: Math.random() > .35 ? CYAN : PURPLE,
+    };
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: COUNT }, mkParticle);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Update + draw nodes
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+      // Mouse repel
+      const dx = p.x - mouse.x, dy = p.y - mouse.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 90) { p.x += dx/d * 1.2; p.y += dy/d * 1.2; }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.color},.7)`;
+      ctx.fill();
+    });
+
+    // Draw edges
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < MAX_DIST) {
+          const alpha = (1 - dist / MAX_DIST) * .28;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(${a.color},${alpha})`;
+          ctx.lineWidth = .8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+  init();
+  draw();
+}
+
 // ── Boot ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => { init(); initParticles(); });
