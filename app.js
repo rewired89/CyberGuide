@@ -333,6 +333,13 @@ function toggleLearned(conceptId, cardEl) {
     cardEl.classList.add('learned');
     const btn = cardEl.querySelector('.learn-btn');
     if (btn) btn.textContent = '✓ Marked as learned';
+    // Burst animation on check circle
+    const check = cardEl.querySelector('.concept-check');
+    if (check) {
+      check.classList.remove('burst');
+      void check.offsetWidth; // reflow to restart animation
+      check.classList.add('burst');
+    }
   }
   saveLearned();
   updateProgressPill();
@@ -400,10 +407,11 @@ function initParticles() {
   const ctx = canvas.getContext('2d');
 
   let W, H, particles, mouse = { x: -9999, y: -9999 };
-  const COUNT = 55;
-  const MAX_DIST = 130;
-  const CYAN = '0,200,255';
-  const PURPLE = '168,85,247';
+  const COUNT = 70;
+  const MAX_DIST = 135;
+  const CYAN   = '0,229,255';
+  const PURPLE = '176,96,255';
+  const PINK   = '255,45,120';
 
   function resize() {
     W = canvas.width  = window.innerWidth;
@@ -416,8 +424,8 @@ function initParticles() {
       y: Math.random() * H,
       vx: (Math.random() - .5) * .45,
       vy: (Math.random() - .5) * .45,
-      r: Math.random() * 1.8 + .6,
-      color: Math.random() > .35 ? CYAN : PURPLE,
+      r: Math.random() * 1.8 + .7,
+      color: (r => r < .5 ? CYAN : r < .75 ? PURPLE : PINK)(Math.random()),
     };
   }
 
@@ -476,4 +484,12 @@ function initParticles() {
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => { init(); initParticles(); });
+document.addEventListener('DOMContentLoaded', () => {
+  // Inject scanline element
+  const scanline = document.createElement('div');
+  scanline.className = 'scanline';
+  document.body.appendChild(scanline);
+
+  init();
+  initParticles();
+});
